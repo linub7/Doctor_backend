@@ -32,6 +32,14 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin', 'doctor'],
       default: 'user',
     },
+    seenNotifications: {
+      type: Array,
+      default: [],
+    },
+    unseenNotifications: {
+      type: Array,
+      default: [],
+    },
   },
   { timestamps: true }
 );

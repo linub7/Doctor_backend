@@ -52,7 +52,8 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 
 // Get Token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
-  const { _id, name, email, role } = user;
+  const { _id, name, email, role, seenNotifications, unseenNotifications } =
+    user;
   // Create token
   const token = user.getSignedJwtToken();
 
@@ -74,5 +75,7 @@ const sendTokenResponse = (user, statusCode, res) => {
     name,
     email,
     role,
+    seenNotifications,
+    unseenNotifications,
   });
 };
