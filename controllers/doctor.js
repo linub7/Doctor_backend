@@ -71,47 +71,81 @@ exports.applyDoctor = asyncHandler(async (req, res, next) => {
   });
 });
 
-exports.seenNotification = asyncHandler(async (req, res, next) => {
-  const {
-    user: { _id },
-  } = req;
-
-  const user = await User.findById(_id);
-
-  if (!user) {
-    return next(new ErrorResponse('User not found', 404));
-  }
-
-  user.seenNotifications = user.unseenNotifications;
-
-  user.unseenNotifications = [];
-
-  await user.save();
+exports.getDoctors = asyncHandler(async (req, res, next) => {
+  const doctors = await Doctor.find();
 
   res.status(200).json({
-    message: 'All notifications has been seen',
-    seenNotifications: user.seenNotifications,
-    unseenNotifications: user.unseenNotifications,
+    doctors,
   });
 });
 
-exports.removeAllNotifications = asyncHandler(async (req, res, next) => {
+exports.updateDoctorState = asyncHandler(async (req, res, next) => {
   const {
-    user: { _id },
+    params: { doctorId },
+    body: { status },
   } = req;
 
-  const user = await User.findById(_id);
+  if (!status) {
+    return next(new ErrorResponse('Status is required', 400));
+  }
+
+  const doctor = await Doctor.findById(doctorId);
+
+  if (!doctor) {
+    return next(new ErrorResponse('Doctor not found', 404));
+  }
+
+  doctor.status = status;
+
+  const user = await User.findById(doctor.user);
 
   if (!user) {
     return next(new ErrorResponse('User not found', 404));
   }
 
-  user.seenNotifications = [];
-  user.unseenNotifications = [];
+  const conditionalType =
+    status === 'approved' ? 'new-doctor-approved' : 'new-doctor-rejected';
 
+  const conditionalMessage = `Your Apply Request has been ${status}`;
+
+  const newUnseenNotification = {
+    type: conditionalType,
+    message: conditionalMessage,
+    data: {
+      doctorId: doctor._id,
+      doctorName: `${doctor.first_name} ${doctor.last_name}`,
+    },
+    path: null,
+  };
+
+  user.unseenNotifications.push(newUnseenNotification);
+
+  if (status === 'approved') {
+    user.role = 'doctor';
+  }
+
+  const admin = await User.findOne({ role: 'admin' });
+
+  const adminUnseenNotifications = admin.unseenNotifications;
+  const adminConditionalMessage = `Mr/Mrs ${doctor.last_name} has been ${status}`;
+
+  const newAdminUnseenNotification = {
+    type: conditionalType,
+    message: adminConditionalMessage,
+    data: {
+      doctorId: doctor._id,
+      doctorName: `${doctor.first_name} ${doctor.last_name}`,
+    },
+    path: '/admin/doctors',
+  };
+  adminUnseenNotifications.push(newAdminUnseenNotification);
+
+  await doctor.save();
   await user.save();
+  await admin.save();
 
   res.status(200).json({
-    message: 'All notifications has been seen',
+    message: 'Doctor state has been updated',
+    doctor,
   });
 });
