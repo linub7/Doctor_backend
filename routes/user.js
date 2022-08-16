@@ -5,6 +5,7 @@ const {
   removeAllNotifications,
   getUserSeenNotifications,
   getUserUnseenNotifications,
+  getAppointmentsForUser,
 } = require('../controllers/user');
 const { protect, authorize } = require('../middlewares/auth');
 
@@ -24,5 +25,7 @@ router.get(
   protect,
   getUserUnseenNotifications
 );
+
+router.get('/users/appointments', protect, getAppointmentsForUser);
 
 module.exports = router;

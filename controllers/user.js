@@ -1,5 +1,6 @@
 const asyncHandler = require('../middlewares/async');
 const User = require('../models/user');
+const Appointment = require('../models/appointment');
 const ErrorResponse = require('../utils/errorResponse');
 
 exports.seenNotification = asyncHandler(async (req, res, next) => {
@@ -54,6 +55,20 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     users: filteredUsers,
+  });
+});
+
+exports.getAppointmentsForUser = asyncHandler(async (req, res, next) => {
+  const {
+    user: { _id },
+  } = req;
+
+  const appointments = await Appointment.find({ user: _id })
+    .populate('user', 'name email')
+    .populate('doctor', 'first_name last_name phoneNumber');
+
+  res.status(200).json({
+    appointments,
   });
 });
 
