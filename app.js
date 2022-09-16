@@ -16,7 +16,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use(express.json());
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ origin: 'https://dancing-semolina-aa5088.netlify.app' }));
 app.use(mongoSanitize());
 
 readdirSync('./routes').map((r) =>
